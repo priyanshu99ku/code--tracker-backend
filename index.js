@@ -13,7 +13,6 @@ const friendRoutes = require('./src/routes/friend.routes');
 const listRoutes = require('./src/routes/list.routes');
 const sortRoutes = require('./src/routes/sort.routes');
 const codechefRoutes = require('./src/routes/codechef.routes');
-const teacherloginRoutes = require('./src/routes/teacherlogin.routes');
 const questionRoutes = require('./src/routes/question.routes');
 const contestRoutes = require('./src/routes/contest.routes');
 
@@ -44,7 +43,6 @@ app.use('/api/friend', friendRoutes);
 app.use('/api/list', listRoutes);
 app.use('/api/sort', sortRoutes);
 app.use('/api/codechef', codechefRoutes);
-app.use('/api/teacherlogin', teacherloginRoutes);
 app.use('/api/question', questionRoutes);
 app.use('/api/contest', contestRoutes);
 

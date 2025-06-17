@@ -53,6 +53,7 @@ const user_register = async (req, res) => {
             name: req.body.name,
             password: hashedPassword,
             gender: req.body.gender,
+            role: 'student',  // Set default role as student
             mobile: req.body.mobile,
             leetcode: req.body.leetcode,
             codechef: req.body.codechef,

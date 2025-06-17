@@ -14,6 +14,15 @@ const studentProfileSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  role: {
+    type: String,
+    enum: ['student', 'teacher'],
+    required: true
+  },
+  jobid: {
+    type: String,
+    required: function() { return this.role === 'teacher'; }
+  },
   gender: {
     type: String,
     required: true

@@ -77,7 +77,16 @@ const register = async (req, res) => {
 // Get profile
 const getProfile = async (req, res) => {
     try {
-        const profile = await StudentProfile.findOne({ email: req.query.email });
+        const email = req.query.email || req.params.email;
+        
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        const profile = await StudentProfile.findOne({ email });
         
         if (!profile) {
             return res.status(404).json({
