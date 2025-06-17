@@ -2,10 +2,18 @@ const express = require('express');
 const router = express.Router();
 const studentProfileController = require('../controllers/studentprofile');
 
-// Student Profile routes
+// Register new user
+router.post('/register', studentProfileController.register);
+
+// Get profile
+router.get('/profile', studentProfileController.getProfile);
+
+// Update profile
+router.patch('/profile/:email', studentProfileController.updateProfile);
+
+// Legacy routes for compatibility
 router.post('/', studentProfileController.makeprofile);
 router.get('/:email', studentProfileController.showprofile);
-router.put('/:email', studentProfileController.update_profile);
-router.delete('/:email', studentProfileController.delete_profile);
+router.patch('/:email', studentProfileController.update_profile);
 
-module.exports = router; 
+module.exports = router;

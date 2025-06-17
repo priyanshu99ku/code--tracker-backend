@@ -1,4 +1,4 @@
-const LoginDetails = require("../models/logindetail");
+const StudentProfile = require("../models/studentprofile");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -27,7 +27,7 @@ const user_register = async (req, res) => {
         }
 
         // Check if user already exists
-        const existingUser = await LoginDetails.findOne({ email: req.body.email });
+        const existingUser = await StudentProfile.findOne({ email: req.body.email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -47,33 +47,41 @@ const user_register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-        const details = new LoginDetails({
+        // Create user with all profile information
+        const user = new StudentProfile({
             email: req.body.email,
             name: req.body.name,
             password: hashedPassword,
             gender: req.body.gender,
-            date: new Date()
+            mobile: req.body.mobile,
+            leetcode: req.body.leetcode,
+            codechef: req.body.codechef,
+            codeforces: req.body.codeforces,
+            codeforcesurl: req.body.codeforcesurl,
+            leetcodeurl: req.body.leetcodeurl,
+            codechefurl: req.body.codechefurl,
+            skills: req.body.skills,
+            about: req.body.about
         });
 
-        const savedDetails = await details.save();
+        const savedUser = await user.save();
         
         // Generate JWT token
         const token = jwt.sign(
-            { userId: savedDetails._id },
+            { userId: savedUser._id },
             process.env.JWT_SECRET || 'your-secret-key',
             { expiresIn: '24h' }
         );
+
+        // Return user data without password
+        const userData = savedUser.toObject();
+        delete userData.password;
 
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
             token,
-            user: {
-                id: savedDetails._id,
-                email: savedDetails.email,
-                name: savedDetails.name,
-                gender: savedDetails.gender
-            }
+            user: userData
         });
     } catch (err) {
         console.error('Error registering user:', err);
@@ -98,7 +106,7 @@ const user_login = async (req, res) => {
         }
 
         // Find user by email
-        const user = await LoginDetails.findOne({ email });
+        const user = await StudentProfile.findOne({ email });
         
         if (!user) {
             return res.status(404).json({
@@ -123,16 +131,15 @@ const user_login = async (req, res) => {
             { expiresIn: '24h' }
         );
 
+        // Return user data without password
+        const userData = user.toObject();
+        delete userData.password;
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
             token,
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.name,
-                gender: user.gender
-            }
+            user: userData
         });
     } catch (err) {
         console.error('Error logging in:', err);
@@ -156,7 +163,7 @@ const delete_account = async (req, res) => {
             });
         }
 
-        const deletedUser = await LoginDetails.findOneAndDelete({ email });
+        const deletedUser = await StudentProfile.findOneAndDelete({ email });
         
         if (!deletedUser) {
             return res.status(404).json({

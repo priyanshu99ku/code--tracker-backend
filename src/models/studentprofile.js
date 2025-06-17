@@ -1,16 +1,27 @@
 const mongoose = require('mongoose');
 
 const studentProfileSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
   email: {
     type: String,
     required: true,
     unique: true
   },
-  name: {
+  password: {
     type: String,
     required: true
   },
   gender: {
+    type: String,
+    required: true
+  },
+  mobile: {
+    type: String
+  },
+  leetcode: {
     type: String
   },
   codechef: {
@@ -19,34 +30,19 @@ const studentProfileSchema = new mongoose.Schema({
   codeforces: {
     type: String
   },
-  leetcode: {
-    type: String
-  },
-  codechefurl: {
-    type: String
-  },
   codeforcesurl: {
     type: String
   },
   leetcodeurl: {
     type: String
   },
-  language: {
+  codechefurl: {
     type: String
   },
-  address: {
+  skills: {
     type: String
   },
-  mobile: {
-    type: Number
-  },
-  skill: {
-    type: String
-  },
-  profession: {
-    type: String
-  },
-  designation: {
+  about: {
     type: String
   }
 }, {

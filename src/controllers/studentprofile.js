@@ -1,10 +1,11 @@
 const StudentProfile = require("../models/studentprofile");
+const bcrypt = require('bcryptjs');
 
-// Make profile
-const makeprofile = async (req, res) => {
+// Register new user
+const register = async (req, res) => {
     try {
         // Validate required fields
-        const requiredFields = ['email', 'name', 'gender', 'mobile'];
+        const requiredFields = ['email', 'password', 'name', 'gender'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
         
         if (missingFields.length > 0) {
@@ -24,174 +25,119 @@ const makeprofile = async (req, res) => {
             });
         }
 
-        // Validate mobile number
-        const mobileRegex = /^[0-9]{10}$/;
-        if (!mobileRegex.test(req.body.mobile)) {
+        // Check if user already exists
+        const existingUser = await StudentProfile.findOne({ email: req.body.email });
+        if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid mobile number format (10 digits required)'
+                message: 'User already exists'
             });
         }
 
-        // Check if profile already exists
-        const existingProfile = await StudentProfile.findOne({ email: req.body.email });
-        if (existingProfile) {
-            return res.status(400).json({
-                success: false,
-                message: 'Profile already exists for this email'
-            });
-        }
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-        const details = new StudentProfile({
-            email: req.body.email,
+        // Create user with hashed password
+        const user = new StudentProfile({
             name: req.body.name,
+            email: req.body.email,
+            password: hashedPassword,
             gender: req.body.gender,
+            mobile: req.body.mobile,
+            leetcode: req.body.leetcode,
             codechef: req.body.codechef,
             codeforces: req.body.codeforces,
-            leetcode: req.body.leetcode,
-            codechefurl: req.body.codechefurl,
             codeforcesurl: req.body.codeforcesurl,
             leetcodeurl: req.body.leetcodeurl,
-            language: req.body.language,
-            address: req.body.address,
-            mobile: req.body.mobile,
-            skill: req.body.skill,
-            profession: req.body.profession,
-            designation: req.body.designation,
-            date: new Date()
+            codechefurl: req.body.codechefurl,
+            skills: req.body.skills,
+            about: req.body.about
         });
 
-        const savedProfile = await details.save();
-        
+        await user.save();
+
+        // Return user data without password
+        const { password, ...userData } = user.toObject();
+
         res.status(201).json({
             success: true,
-            message: 'Profile created successfully',
-            data: savedProfile
+            message: 'User registered successfully',
+            data: userData
         });
-    } catch (err) {
-        console.error('Error creating profile:', err);
+    } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Failed to create profile',
-            error: err.message
+            message: 'Error registering user',
+            error: error.message
         });
     }
 };
 
-// Show profile
-const showprofile = async (req, res) => {
+// Get profile
+const getProfile = async (req, res) => {
     try {
-        const { email } = req.params;
+        const profile = await StudentProfile.findOne({ email: req.query.email });
         
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
-        }
-
-        const user = await StudentProfile.findOne({ email });
-        
-        if (!user) {
+        if (!profile) {
             return res.status(404).json({
                 success: false,
                 message: 'Profile not found'
             });
         }
 
-        res.status(200).json({
-            success: true,
-            data: user
-        });
-    } catch (err) {
-        console.error('Error fetching profile:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch profile',
-            error: err.message
-        });
-    }
-};
-
-// Delete profile
-const delete_profile = async (req, res) => {
-    try {
-        const { email } = req.params;
-        
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
-        }
-
-        const deletedProfile = await StudentProfile.findOneAndDelete({ email });
-        
-        if (!deletedProfile) {
-            return res.status(404).json({
-                success: false,
-                message: 'Profile not found'
-            });
-        }
+        // Remove password from response
+        const { password, ...profileData } = profile.toObject();
 
         res.status(200).json({
             success: true,
-            message: 'Profile deleted successfully'
+            data: profileData
         });
-    } catch (err) {
-        console.error('Error deleting profile:', err);
+    } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Failed to delete profile',
-            error: err.message
+            message: 'Error fetching profile',
+            error: error.message
         });
     }
 };
 
 // Update profile
-const update_profile = async (req, res) => {
+const updateProfile = async (req, res) => {
     try {
-        const { email } = req.params;
         const updates = req.body;
         
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
-        }
-
-        // Validate mobile number if provided
-        if (updates.mobile) {
-            const mobileRegex = /^[0-9]{10}$/;
-            if (!mobileRegex.test(updates.mobile)) {
+        // Validate email format if provided
+        if (updates.email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(updates.email)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Invalid mobile number format (10 digits required)'
+                    message: 'Invalid email format'
                 });
             }
         }
 
-        // Remove email from updates to prevent changing it
-        delete updates.email;
-
-        const updatedProfile = await StudentProfile.findOneAndUpdate(
-            { email },
+        const profile = await StudentProfile.findOneAndUpdate(
+            { email: req.params.email },
             { $set: updates },
-            { new: true, runValidators: true }
+            { new: true }
         );
-
-        if (!updatedProfile) {
+        
+        if (!profile) {
             return res.status(404).json({
                 success: false,
                 message: 'Profile not found'
             });
         }
 
+        // Remove password from response
+        const { password, ...profileData } = profile.toObject();
+
         res.status(200).json({
             success: true,
             message: 'Profile updated successfully',
-            data: updatedProfile
+            data: profileData
         });
     } catch (err) {
         console.error('Error updating profile:', err);
@@ -204,8 +150,11 @@ const update_profile = async (req, res) => {
 };
 
 module.exports = {
-    makeprofile,
-    showprofile,
-    delete_profile,
-    update_profile
-}; 
+    register,
+    getProfile,
+    updateProfile,
+    makeprofile: register,  
+    showprofile: getProfile,
+    delete_profile: null,   
+    update_profile: updateProfile
+};
