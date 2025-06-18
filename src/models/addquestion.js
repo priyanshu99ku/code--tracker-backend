@@ -6,6 +6,11 @@ const questionSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
   question_Description: {
     type: String,
     required: true,
@@ -27,9 +32,13 @@ const questionSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  need_pratice: String
+  need_pratice: String,
+  answers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Answer'
+  }]
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model("QuestionData", questionSchema); 
+module.exports = mongoose.model("QuestionData", questionSchema);

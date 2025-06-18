@@ -10,16 +10,17 @@ const feedbackRoutes = require('./src/routes/feedback.routes');
 const loginRoutes = require('./src/routes/login.routes');
 const profileRoutes = require('./src/routes/profile.routes');
 const friendRoutes = require('./src/routes/friend.routes');
-const listRoutes = require('./src/routes/list.routes');
-const sortRoutes = require('./src/routes/sort.routes');
 const codechefRoutes = require('./src/routes/codechef.routes');
 const questionRoutes = require('./src/routes/question.routes');
 const contestRoutes = require('./src/routes/contest.routes');
+
 
 const app = express();
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI;
+
+
 
 mongoose.connect(MONGODB_URI)
 .then(() => console.log('MongoDB connected!'))
@@ -40,11 +41,10 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api', loginRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/friend', friendRoutes);
-app.use('/api/list', listRoutes);
-app.use('/api/sort', sortRoutes);
 app.use('/api/codechef', codechefRoutes);
 app.use('/api/question', questionRoutes);
 app.use('/api/contest', contestRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
