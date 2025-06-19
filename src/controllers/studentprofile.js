@@ -158,12 +158,30 @@ const updateProfile = async (req, res) => {
     }
 };
 
+// Get all users except the logged-in user
+const getFeed = async (req, res) => {
+    try {
+        const users = await StudentProfile.find({ _id: { $ne: req.userId } }).select('-password');
+        res.status(200).json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching feed',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     register,
     getProfile,
     updateProfile,
-    makeprofile: register,  
+    getFeed,
+    makeprofile: register,
     showprofile: getProfile,
-    delete_profile: null,   
+    delete_profile: null,
     update_profile: updateProfile
 };
